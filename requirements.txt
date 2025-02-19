@@ -8,3 +8,8 @@ numpy
 pillow
 pillow-heif
 matplotlib
+pandas
+requests
+scikit-learn
+scipy
+shutil
