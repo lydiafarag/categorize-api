@@ -12,4 +12,3 @@ pandas
 requests
 scikit-learn
 scipy
-shutil
