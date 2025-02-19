@@ -6,8 +6,8 @@ from pathlib import Path
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from api.segmentations_utils import segment_image
-from api.classification_utils import classify_images
+from segmentations_utils import segment_image
+from classification_utils import classify_images
 
 # Initialize FastAPI app
 app = FastAPI()
