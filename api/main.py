@@ -2,14 +2,17 @@ import base64
 import shutil
 import uvicorn
 import cv2
+import os
 from pathlib import Path
-from fastapi import FastAPI, UploadFile, File, Form
+from io import BytesIO
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from PIL import Image
+import numpy as np
 from api.segmentations_utils import segment_image
 from api.classification_utils import classify_images
-import os
-import tensorflow as tf
 #added this for render to be able to run on CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 tf.config.set_visible_devices([], 'GPU')
@@ -20,6 +23,10 @@ app = FastAPI()
 origins = [
     "*"
 ]
+class ImageRequest(BaseModel):
+    image_to_base64: str
+    model_type: str
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -42,29 +49,28 @@ async def root():
     return {"message": "Welcome to the Well Classification API!"}
 
 @app.post("/process/")
-async def process_image(file: UploadFile = File(...), model_type: str = Form(...)):
-    print(f"Received file: {file.filename}, Model Type: {model_type}")
+async def process_image(request: ImageRequest):
     
     try:
         # Convert `file.filename` to a Path object BEFORE using `.stem`
-        file_path = Path(file.filename)
-        
-        # Ensure safe file saving with `.name`
-        upload_path = UPLOAD_DIR / file_path.name  
-        
-        # Save the uploaded image
-        with upload_path.open("wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        #file_path = Path(file.filename)
+        image_data = base64.b64decode(request.image_base64)
+        image = Image.open(BytesIO(image_data))
+        image = image.convert("RGB")  # Ensure it's in RGB format
 
-        # Create segmented folder using `.stem`
-        segmented_images_folder = SEGMENTED_DIR / file_path.stem  
+        # Save the image to a temporary file
+        image_path = UPLOAD_DIR / "uploaded_image.jpg"
+        image.save(image_path)
+
+        # Create a segmented folder
+        segmented_images_folder = SEGMENTED_DIR / "segmented"
         segmented_images_folder.mkdir(exist_ok=True)
 
         # Perform segmentation
-        rows, columns, radius = segment_image(upload_path, segmented_images_folder)
+        rows, columns, radius = segment_image(image_path, segmented_images_folder)
 
         # Classify segmented wells
-        classification_results = classify_images(segmented_images_folder, model_type, rows, columns, radius)
+        classification_results = classify_images(segmented_images_folder, request.model_type, rows, columns, radius)
         print(f"Classified {len(classification_results)}/96 wells")
 
         return JSONResponse(content={"results": classification_results})
