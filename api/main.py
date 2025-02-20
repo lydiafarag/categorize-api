@@ -13,6 +13,8 @@ from PIL import Image
 import numpy as np
 from api.segmentations_utils import segment_image
 from api.classification_utils import classify_images
+import tensorflow as tf
+
 #added this for render to be able to run on CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 tf.config.set_visible_devices([], 'GPU')
