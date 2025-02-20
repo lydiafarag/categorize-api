@@ -10,7 +10,7 @@ with open(image_path, "rb") as img_file:
 
 # Prepare the payload
 data = {
-    "image": base64_image,  # Send image as Base64 string
+    "image_to_base64": base64_image,  # Send image as Base64 string
     "model_type": "multiclass"  # Change to "binary" if needed
 }
 

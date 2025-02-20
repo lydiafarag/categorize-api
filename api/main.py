@@ -56,7 +56,7 @@ async def process_image(request: ImageRequest):
     try:
         # Convert `file.filename` to a Path object BEFORE using `.stem`
         #file_path = Path(file.filename)
-        image_data = base64.b64decode(request.image_base64)
+        image_data = base64.b64decode(request.image_to_base64)
         image = Image.open(BytesIO(image_data))
         image = image.convert("RGB")  # Ensure it's in RGB format
 
