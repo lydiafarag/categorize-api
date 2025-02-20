@@ -43,6 +43,8 @@ async def root():
 
 @app.post("/process/")
 async def process_image(file: UploadFile = File(...), model_type: str = Form(...)):
+    print(f"Received file: {file.filename}, Model Type: {model_type}")
+    
     try:
         # Convert `file.filename` to a Path object BEFORE using `.stem`
         file_path = Path(file.filename)
