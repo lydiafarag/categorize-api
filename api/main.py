@@ -3,7 +3,7 @@ import shutil
 import uvicorn
 import cv2
 from pathlib import Path
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from api.segmentations_utils import segment_image
@@ -18,8 +18,7 @@ app = FastAPI()
 
 # Allow requests from the React Native front-end
 origins = [
-    "http://localhost",  # Replace with the URL of your React Native app
-    "http://localhost:3000",
+    "*"
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +27,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+os.makedirs("api/uploads", exist_ok=True)
+os.makedirs("api/segmented_wells", exist_ok=True)
 
 # Define paths
 UPLOAD_DIR = Path("api/uploads")
@@ -41,7 +42,7 @@ async def root():
     return {"message": "Welcome to the Well Classification API!"}
 
 @app.post("/process/")
-async def process_image(file: UploadFile = File(...), model_type: str = "binary"):
+async def process_image(file: UploadFile = File(...), model_type: str = Form(...)):
     try:
         # Convert `file.filename` to a Path object BEFORE using `.stem`
         file_path = Path(file.filename)
