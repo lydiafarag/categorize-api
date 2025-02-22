@@ -6,6 +6,8 @@ from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 import os
 
+ROW_LABELS = {1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H'}
+
 def preprocess_image(image_path):
     image = cv2.imread(image_path)
     image = cv2.resize(image, (128, 128))  # Resize to match CNN input
@@ -38,6 +40,10 @@ def classify_images(segmented_images_folder, model_type, rows, columns, radius):
                 x = columns[column_index-1]
                 y = rows[row_index-1]
 
+                # Get corresponding row and column (eg. A1, B2, etc)
+                row = ROW_LABELS[row_index]
+                column = column_index
+
                 # Load the image
                 image_path = os.path.join(segmented_images_folder, image_name)
                 image = preprocess_image(image_path)
@@ -51,6 +57,8 @@ def classify_images(segmented_images_folder, model_type, rows, columns, radius):
                     "x": x,
                     "y": y,
                     "r": radius,
+                    "row": row,
+                    "column": column,
                     "Predicted": predicted_label
                 })
 
