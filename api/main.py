@@ -28,6 +28,7 @@ origins = [
 class ImageRequest(BaseModel):
     image_to_base64: str
     model_type: str
+    isUpload: bool
 
 app.add_middleware(
     CORSMiddleware,
@@ -69,7 +70,7 @@ async def process_image(request: ImageRequest):
         segmented_images_folder.mkdir(exist_ok=True)
 
         # Perform segmentation
-        rows, columns, radius = segment_image(image_path, segmented_images_folder)
+        rows, columns, radius = segment_image(image_path, segmented_images_folder, request.isUpload)
 
         # Classify segmented wells
         classification_results = classify_images(segmented_images_folder, request.model_type, rows, columns, radius)
