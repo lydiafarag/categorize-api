@@ -26,7 +26,7 @@ def classify_images(segmented_images_folder, model_type, rows, columns, radius):
     
     model = load_model(model_path)
     predictions = []
-    MULTICLASS_LABELS = ["Not Effective", "Somewhat Effective", "Effective", "Very Effective"]
+    MULTICLASS_LABELS = ["Ineffective", "Slightly Effective", " Mostly Effective", "Effective"]
     
    
     for image_name in os.listdir(segmented_images_folder):
