@@ -71,7 +71,7 @@ async def process_image(request: ImageRequest):
 
         # Perform segmentation
         rows, columns, radius = segment_image(image_path, segmented_images_folder, request.isUpload)
-        if any(rows, columns) is None:
+        if rows is None:
             print("96 wells not detected")
             return JSONResponse(content={"results": None})
         

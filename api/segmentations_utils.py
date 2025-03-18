@@ -52,6 +52,7 @@ def refine_grid(circles, buffer=BUFFER):
         columns.append(current_column)
 
     # Calculate expected positions for rows and columns using averages
+    # If 8 rows and 12 columns not detected, return None
     minCircles = 1
     row_averages = []
     while True:
@@ -60,11 +61,14 @@ def refine_grid(circles, buffer=BUFFER):
                 continue
             avg_y = np.mean([circle[1] for circle in row])
             row_averages.append(int(avg_y))
+        
         if len(row_averages) > ROWS:
             minCircles += 1
             row_averages = []
+        
         elif len(row_averages) < ROWS:
             return None, None, None
+        
         else:
             break
 
@@ -77,11 +81,14 @@ def refine_grid(circles, buffer=BUFFER):
             avg_x = np.mean([circle[0] for circle in col])
             column_averages.append(int(avg_x))
         minCircles += 1
+        
         if len(column_averages) > COLUMNS:
             minCircles += 1
             column_averages = []
+        
         elif len(column_averages) < COLUMNS:
             return None, None, None
+        
         else:
             break
 
