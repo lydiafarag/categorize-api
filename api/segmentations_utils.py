@@ -4,76 +4,64 @@ import os
 from pathlib import Path
 from PIL import Image
 from pillow_heif import register_heif_opener
+from scipy.cluster.hierarchy import linkage, fcluster
 
 # Register HEIF opener for PIL to handle HEIC files
 register_heif_opener()
 
-BUFFER = 30
 ROWS = 8
 COLUMNS = 12
 
-def refine_grid(circles, buffer=BUFFER):
-    """
-    Groups circles into rows and columns based on the proximity (buffer) of their y and x values, respectively.
-    Fills missing circles with the average x and y values for their respective rows and columns.
-    """
-    # Group circles by rows using the y-position (within the BUFFER)
-    sorted_circles = sorted(circles, key=lambda c: (c[1], c[0]))  # Sort by y first, then x
-    rows = []
-    current_row = []
-    previous_y = sorted_circles[0][1]
-    
-    for x, y, r in sorted_circles:
-        if abs(y - previous_y) <= buffer:
-            current_row.append((x, y, r))
-        else:
-            rows.append(current_row)
-            current_row = [(x, y, r)]
-        previous_y = y
-    
-    if current_row:
-        rows.append(current_row)
+# Remove outliers from rows and columns using IQR
+def remove_outliers(data, m=1.5):
+    Q1 = np.percentile(data, 25)
+    Q3 = np.percentile(data, 75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - m * IQR
+    upper_bound = Q3 + m * IQR
+    return data[(data >= lower_bound) & (data <= upper_bound)]
 
-    # Group circles by columns using the x-position (within the BUFFER)
-    sorted_circles = sorted(circles, key=lambda c: (c[0], c[1]))  # Sort by x first, then y
-    columns = []
-    current_column = []
-    previous_x = sorted_circles[0][0]
-    
-    for x, y, r in sorted_circles:
-        if abs(x - previous_x) <= buffer:
-            current_column.append((x, y, r))
-        else:
-            columns.append(current_column)
-            current_column = [(x, y, r)]
-        previous_x = x
-    
-    if current_column:
-        columns.append(current_column)
-
-    # Calculate expected positions for rows and columns using averages
-    # If 8 rows and 12 columns not detected, return None
-    row_averages = []
-    for row in rows:
-        avg_y = np.mean([circle[1] for circle in row])
-        row_averages.append(int(avg_y))
-
-    column_averages = []
-    for col in columns:
-        avg_x = np.mean([circle[0] for circle in col])
-        column_averages.append(int(avg_x))
+def refine_grid(circles):
+    circles = np.uint16(np.around(circles))[:, :]
 
     # Compute average radius
     radii = [circle[2] for circle in circles]
     average_radius = 0.8 * sum(radii) / len(radii) if radii else 0
 
-    # Compute final circle positions using intersections of average rows and columns and average radius
-    final_grid = []
-    for row in row_averages:
-        average_row = []
-        for col in column_averages:
-            average_row.append((int(col), int(row), int(average_radius)))
-        final_grid.append(average_row)
+    # Cluster to find 8 rows
+    y_coords = circles[:, 1].reshape(-1, 1)
+    Z_y = linkage(y_coords, method='ward')  
+    row_labels = fcluster(Z_y, ROWS, criterion='maxclust')
+
+    # Compute row averages
+    row_averages = []
+    for label in sorted(np.unique(row_labels)):
+        row_circles = circles[row_labels == label]
+        
+        # Remove outliers from average calculation
+        filtered_rows = remove_outliers(row_circles[:, 1])
+        if len(filtered_rows) > 0:
+            avg_y = int(np.mean(filtered_rows))
+            row_averages.append(avg_y)
+
+    # Cluster to find 12 columns
+    x_coords = circles[:, 0].reshape(-1, 1)
+    Z_x = linkage(x_coords, method='ward')
+    col_labels = fcluster(Z_x, COLUMNS, criterion='maxclust')
+
+    # Compute column averages
+    column_averages = []
+    for label in sorted(np.unique(col_labels)):
+        col_circles = circles[col_labels == label]
+        
+        # Remove outliers from average calculation
+        filtered_cols = remove_outliers(col_circles[:, 0])
+        if len(filtered_cols) > 0:
+            avg_x = int(np.mean(filtered_cols))
+            column_averages.append(avg_x)
+    
+    row_averages.sort()
+    column_averages.sort()
 
     # Return average x and y for columns and rows and shrink average radius
     return row_averages, column_averages, int(average_radius)
