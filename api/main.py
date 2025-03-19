@@ -14,6 +14,7 @@ import numpy as np
 from api.segmentations_utils import segment_image
 from api.classification_utils import classify_images
 import tensorflow as tf
+import traceback
 
 #added this for render to be able to run on CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -82,7 +83,11 @@ async def process_image(request: ImageRequest):
         return JSONResponse(content={"results": classification_results})
 
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        error_message = str(e)
+        error_details = traceback.format_exc()
+        print(f"Error during prediction: {error_message}")
+        print(f"Full error details: {error_details}")
+        return JSONResponse(status_code=500, content={"error": error_message, "details": error_details})
 
 def create_annotated_image(original_path, results, save_path):
     """
