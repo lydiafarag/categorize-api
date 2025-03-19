@@ -9,9 +9,10 @@ from pillow_heif import register_heif_opener
 register_heif_opener()
 
 BUFFER = 30
-MIN_CIRCLES = 2
+ROWS = 8
+COLUMNS = 12
 
-def refine_grid(circles, buffer=BUFFER, minCircles=MIN_CIRCLES):
+def refine_grid(circles, buffer=BUFFER):
     """
     Groups circles into rows and columns based on the proximity (buffer) of their y and x values, respectively.
     Fills missing circles with the average x and y values for their respective rows and columns.
@@ -51,19 +52,45 @@ def refine_grid(circles, buffer=BUFFER, minCircles=MIN_CIRCLES):
         columns.append(current_column)
 
     # Calculate expected positions for rows and columns using averages
+    # If 8 rows and 12 columns not detected, return None
+    minCircles = 1
     row_averages = []
-    for row in rows:
-        if len(row) < minCircles:
-            continue
-        avg_y = np.mean([circle[1] for circle in row])
-        row_averages.append(int(avg_y))
+    while True:
+        for row in rows:
+            if len(row) < minCircles:
+                continue
+            avg_y = np.mean([circle[1] for circle in row])
+            row_averages.append(int(avg_y))
+        
+        if len(row_averages) > ROWS:
+            minCircles += 1
+            row_averages = []
+        
+        elif len(row_averages) < ROWS:
+            return None, None, None
+        
+        else:
+            break
 
+    minCircles = 1
     column_averages = []
-    for col in columns:
-        if len(col) < minCircles:
-            continue
-        avg_x = np.mean([circle[0] for circle in col])
-        column_averages.append(int(avg_x))
+    while True:
+        for col in columns:
+            if len(col) < minCircles:
+                continue
+            avg_x = np.mean([circle[0] for circle in col])
+            column_averages.append(int(avg_x))
+        minCircles += 1
+        
+        if len(column_averages) > COLUMNS:
+            minCircles += 1
+            column_averages = []
+        
+        elif len(column_averages) < COLUMNS:
+            return None, None, None
+        
+        else:
+            break
 
     # Compute average radius
     radii = [circle[2] for circle in circles]

@@ -71,7 +71,10 @@ async def process_image(request: ImageRequest):
 
         # Perform segmentation
         rows, columns, radius = segment_image(image_path, segmented_images_folder, request.isUpload)
-
+        if rows is None:
+            print("96 wells not detected")
+            return JSONResponse(content={"results": None})
+        
         # Classify segmented wells
         classification_results = classify_images(segmented_images_folder, request.model_type, rows, columns, radius)
         print(f"Classified {len(classification_results)}/96 wells")
