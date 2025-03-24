@@ -26,7 +26,7 @@ def refine_grid(circles):
 
     # Compute average radius
     radii = [circle[2] for circle in circles]
-    average_radius = 0.8 * sum(radii) / len(radii) if radii else 0
+    average_radius = int(0.8 * sum(radii) / len(radii)) if radii else 0
 
     # Cluster to find 8 rows
     y_coords = circles[:, 1].reshape(-1, 1)
