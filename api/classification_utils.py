@@ -20,13 +20,13 @@ def classify_images(segmented_images_folder, model_type, rows, columns, radius):
     if model_type == "binary":
         model_path = "api/models/well_classifier_cnn.h5"
     elif model_type == "multiclass":
-        model_path = "api/models/well_classifier_cnn_4_classes_fixed.h5"
+        model_path = "api/models/well_classifier_cnn_3_classes_v3.h5"
     else:
         raise Exception(f"No model of type \"{model_type}\" found.")
     
     model = load_model(model_path)
     predictions = []
-    MULTICLASS_LABELS = ["Ineffective", "Slightly Effective", "Mostly Effective", "Effective"]
+    MULTICLASS_LABELS = ["Ineffective", "Somewhat Effective", "Effective"]
     
    
     for image_name in os.listdir(segmented_images_folder):
