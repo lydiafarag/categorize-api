@@ -3,6 +3,8 @@ import cv2
 import numpy as np
 import pandas as pd
 from tensorflow.keras.models import load_model
+from api.rule_based_classifier import classify_by_rgb_peaks
+
 import matplotlib.pyplot as plt
 import os
 
@@ -15,16 +17,20 @@ def preprocess_image(image_path):
     return np.expand_dims(image, axis=0)  # add batch dimension
 
 def classify_images(segmented_images_folder, model_type, rows, columns, radius):
-
-  
+    MULTICLASS_LABELS = ["Ineffective", "Somewhat Effective", "Effective"]
+    predictions = []
     if model_type == "binary":
         model_path = "api/models/well_classifier_cnn.h5"
+        model = load_model(model_path)
     elif model_type == "multiclass":
         model_path = "api/models/well_classifier_cnn_3_classes_v3.h5"
+        model = load_model(model_path)
+    elif model_type == "rule":
+        model_path = None  # No model needed for rule-based classification
     else:
         raise Exception(f"No model of type \"{model_type}\" found.")
     
-    model = load_model(model_path)
+    #model = load_model(model_path)
     predictions = []
     MULTICLASS_LABELS = ["Ineffective", "Somewhat Effective", "Effective"]
     
@@ -47,15 +53,24 @@ def classify_images(segmented_images_folder, model_type, rows, columns, radius):
 
               
                 image_path = os.path.join(segmented_images_folder, image_name)
-                image = preprocess_image(image_path)
+                if model_type == "rule":
+                    image = cv2.imread(image_path)
+                    predicted_label = classify_by_rgb_peaks(image)
+                else:
+                    image = preprocess_image(image_path)
 
                
-                prediction = model.predict(image)
-                predicted_index = np.argmax(prediction)
-                if model_type == "binary":
-                    predicted_label = "Effective" if predicted_index == 1 else "Ineffective"
-                else:  # Multiclass model
-                    predicted_label = MULTICLASS_LABELS[predicted_index]  # Map to four-class labels
+                    prediction = model.predict(image)
+                    predicted_index = np.argmax(prediction)
+                    if model_type == "binary":
+                    #model_path = "api/models/well_classifier_cnn.h5"
+                    #model = load_model(model_path)
+                        predicted_label = "Effective" if predicted_index == 1 else "Ineffective"
+               
+                    else:  # Multiclass model
+                    #model_path = "api/models/well_classifier_cnn_3_classes_v3.h5"
+                    #model = load_model(model_path)
+                        predicted_label = MULTICLASS_LABELS[predicted_index]  # Map to three-class labels
                 # Store results
                 predictions.append({
                     "x": x,
