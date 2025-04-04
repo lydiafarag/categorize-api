@@ -18,9 +18,9 @@ def classify_by_rgb_peaks(image):
     b, g, r = peaks['b'], peaks['g'], peaks['r']
     distance = np.sqrt((b - g)**2 + (g - r)**2 + (b - r)**2)
 
-    if distance < 10:
+    if distance < 20:
         return "Effective"
-    elif 10 <= distance < 25:
+    elif 20 <= distance < 35:
         return "Somewhat Effective"
     else:
         return "Ineffective"

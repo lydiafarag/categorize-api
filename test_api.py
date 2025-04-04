@@ -3,7 +3,9 @@ import base64
 import os
 
 API_URL = "https://categorize-api-1.onrender.com/process/"
-image_path = "binary_split.jpeg"  # Replace with your actual image path
+#image_path = "binary_split.jpeg"  # Replace with your actual image path
+image_path = os.path.join(os.path.dirname(__file__), "TSB_iPhone.HEIC")
+
 
 # Ensure the file exists
 if not os.path.exists(image_path):
@@ -23,7 +25,7 @@ is_uploaded = True  # Modify as needed for testing
 # Prepare the properly formatted JSON payload
 data = {
     "image_to_base64": base64_image,  # Ensure this is a proper Base64 string
-    "model_type": "multiclass",  # Change to "binary" if needed
+    "model_type": "rule",  # Change to "binary" if needed
     "isUpload": is_uploaded  # Ensure this is a boolean, not a string
 }
 
