@@ -6,13 +6,14 @@ from PIL import Image
 from pillow_heif import register_heif_opener
 from scipy.cluster.hierarchy import linkage, fcluster
 
-# Register HEIF opener for PIL to handle HEIC files
+# Register HEIC opener for PIL
+# This is necessary for handling HEIC images which are common in iPhone captures and not supported by OpenCV normally 
 register_heif_opener()
 
 ROWS = 8
 COLUMNS = 12
 
-# Remove outliers from rows and columns using IQR
+#remove outliers from the data using IQR method
 def remove_outliers(data, m=1.5):
     Q1 = np.percentile(data, 25)
     Q3 = np.percentile(data, 75)

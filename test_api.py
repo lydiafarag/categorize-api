@@ -3,41 +3,32 @@ import base64
 import os
 
 API_URL = "https://categorize-api-1.onrender.com/process/"
-#image_path = "binary_split.jpeg"  # Replace with your actual image path
-image_path = os.path.join(os.path.dirname(__file__), "TSB_iPhone.HEIC")
+image_path = os.path.join(os.path.dirname(__file__), "EC_test.jpeg")
 
 
-# Ensure the file exists
+#check if the file exists before reading it
 if not os.path.exists(image_path):
     raise FileNotFoundError(f"Error: The file '{image_path}' does not exist.")
 
-# Read image and convert to Base64
+#convert to base64 format
 with open(image_path, "rb") as img_file:
     base64_image = base64.b64encode(img_file.read()).decode("utf-8")  # Proper UTF-8 encoding
 
-# Print Base64 length for debugging (to check if image is encoded correctly)
-#print("Base64 Length:", len(base64_image))
+is_uploaded = True  # modified for testing purposes
 
-# Ensure isupload is a boolean (not a string)
-# If the filename contains "upload", assume it's an uploaded image; otherwise, assume captured
-is_uploaded = True  # Modify as needed for testing
-
-# Prepare the properly formatted JSON payload
+#payload for API request
 data = {
-    "image_to_base64": base64_image,  # Ensure this is a proper Base64 string
-    "model_type": "rule",  # Change to "binary" if needed
-    "isUpload": is_uploaded  # Ensure this is a boolean, not a string
+    "image_to_base64": base64_image,  #base64 encoded image
+    "model_type": "rule",  #change as needed
+    "isUpload": is_uploaded  # true or false
 }
 
-# Print the payload for debugging (without printing the Base64 data)
-#print("Payload being sent:", {k: v if k != "image_to_base64" else "Base64 Data Hidden" for k, v in data.items()})
-
-# Make the API request
+# Send POST request to the API
 response = requests.post(API_URL, json=data)
 
 # Handle response
 try:
-    response_json = response.json()  # Attempt to parse JSON response
+    response_json = response.json()  # parse JSON resp
     print("Response JSON:", response_json)  # Display the response
 except requests.exceptions.JSONDecodeError:
-    print("Error decoding JSON response:", response.text)  # Print error response if JSON is invalid
+    print("Error decoding JSON response:", response.text)  # debugging for invalid JSON response
